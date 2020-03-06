@@ -1,0 +1,47 @@
+body {
+    /* color: #777; */
+    text-align: left;
+  }
+  
+  /* Close Button */
+  
+  [class*='close-'] {
+    color: #777;
+    /* font: 14px/100% arial, sans-serif; */
+    position: absolute;
+    right: 5px;
+    text-decoration: none;
+    text-shadow: 0 1px 0 #fff;
+    top: 5px;
+  }
+  
+  .close-thin:after {
+    content: '×'; /* UTF-8 symbol */
+  }
+  
+  /* Dialog */
+  
+  .dialog {
+    background: #ddd;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    float: left;
+    height: 20px;
+    margin: 3px;
+    position: relative;
+    width: 400px;
+    
+  }
+  
+  /* Container */
+  
+  .container {
+    width: 576px; margin: 0 auto;
+  }
+  
+  .container:after {
+    content: '';
+    display: block;
+    clear: both;
+  }
+  

@@ -1,0 +1,5 @@
+Flask
+Werkzeug
+piexif
+Pillow
+flask_fontawesome

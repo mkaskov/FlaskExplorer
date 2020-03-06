@@ -1,0 +1,68 @@
+{% extends 'layout.html' %}
+{% block content %}
+
+
+<div class='container'>
+    
+   
+    <div class = 'row mt-4'>
+
+    {% for f_name in dirList %}
+        <div class="col-md-2 col-sm-4 col-6 mt-2">
+                <div class="thumbnail hvr-shadow">
+                    <a href="/{{currentDir}}>{{ f_name }}">
+                        <input type="checkbox" style="display:inline-block; position:absolute; margin:.25rem;"/>
+                        <img src = '/static/folder.png' class='img-thumbnail' style="border:0px;"/><p style="color:black; text-align:center; text-decoration:none;">{{f_name[:15]}}</p>
+                    </a>
+                </div>
+        </div>
+    
+    {% endfor %}
+    </div>
+</div>
+
+
+
+<div class='container'>
+    
+
+    <div class = 'row mt-4'>
+        
+    {% for f_name, preview in fileList %}
+    
+        <div class="col-md-2 col-sm-4 col-6 mt-2">
+            <div class="thumbnail hvr-glow">
+                <a href="/download/{{ currentDir }}>{{ f_name }}">
+                     <input type="checkbox" style="display:inline-block; position:absolute; margin:.25rem;"/>
+                {% if ('.jpg' in  f_name.lower()) or ('.jpeg' in f_name.lower()) %}
+                    <img src = "data:image/jpeg;charset=utf-8;base64, {{ preview }}" class='img-thumbnail' style="border:0px"/>                    
+                {% elif ('.png' in f_name) %} 
+                    <img src = '/static/png.png' class='img-thumbnail' style="border:0px"/>
+                {% elif ('.mp4' in f_name) %} 
+                    <img src = '/static/mp4.png' class='img-thumbnail' style="border:0px"/>
+                {% elif ('.mp3' in f_name) %} 
+                    <img src = '/static/mp3.png' class='img-thumbnail' style="border:0px"/>
+
+                {% else %} 
+                    <img src = '/static/file-icon.png' class='img-thumbnail' style="border:0px"/>
+                {% endif %}
+
+                        <p style="color:black; text-align:center;">{{f_name[:15]}}</p>
+                </a>
+
+            
+            </div>
+        </div>
+    
+
+        
+
+
+        {% endfor %}
+    </div>
+</div>
+
+        
+{% endblock content %}
+
+
