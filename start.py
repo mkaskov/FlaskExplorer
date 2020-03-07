@@ -24,39 +24,31 @@ favList      = data["Favorites"]
 password     = data["Password"]
 rootDir      = data["rootDir"]
 
-if len(favList) > 0: 
-    if(len(favList)>3):
-        favList = favList[0:3]
-    for idx, val in enumerate(favList):
-        favList[idx] = favList[idx].replace('/','>')
+
+if len(favList)>3:
+    favList = favList[0:3]
 
 
-@app.route('/login/')
+@app.route('/login/', methods=['GET', 'POST'])
 def loginMethod():
-    global password
-    if(password==''):
-        session['login'] = True
-    if('login' in session):
+    if 'login' in session:
         return redirect('/')
+
+    if request.method == 'POST':
+        text = request.form['text']
+        if text == password:
+            session['login'] = True
+            return redirect('/')
+        else:
+            return redirect('/login/')
     else:
         return render_template('login.html')
 
 
-@app.route('/login/', methods=['POST'])
-def loginPost():
-    global password
-    text = request.form['text']
-    if(text==password):
-        session['login'] = True
-        return redirect('/')
-    else:
-        return redirect('/login/')
-
-
 @app.route('/logout/')
 def logoutMethod():
-    if('login' in session):
-        session.pop('login',None)
+    if 'login' in session:
+        session.pop('login', None)
     return redirect('/login/')
 
 
@@ -105,7 +97,7 @@ def image_preview(img_path):
 
 
 def hidden(path):
-    """ check if one of hidden elements in path
+    """ Check if one of hidden elements in path
     """
     for item in hiddenList:
         if item != '' and item in path:
@@ -113,73 +105,52 @@ def hidden(path):
     return False
 
 
-def changeDirectory(path):
-    global rootDir
-    pathC = path.split('>')
-    if(pathC[0]==""):
-        pathC.remove(pathC[0])
-    
-    myPath = rootDir + '/' + '/'.join(pathC)
-    #print(myPath)
-    try:
-        os.chdir(myPath)
-        ans = True
-        if(rootDir not in os.getcwd()):
-            ans = False
-    except:
-        ans = False
-    
-    return ans
-
-
-def getDirList():
-    """ Get list of directories in current directory exclude hidden elements
-    """
-    dList = list(filter(lambda x: os.path.isdir(x), os.listdir('.')))
-    finalList = []
-    curDir = os.getcwd()
-
-    for item in dList:
-        if(hidden(os.path.join(curDir, item))==False):
-            finalList.append(item)
-
-    return(finalList)
-
-
-def getFileList():
-    """ Get list of files in current directory exclude hidden elements
+def getDirAndFileList(path):
+    """ Get list of directories and files in 'path' directory exclude hidden elements
         for image_types make a preview
     """
-    dList = list(filter(lambda x: os.path.isfile(x), os.listdir('.')))
-    finalList = []
-    curDir = os.getcwd()
+    dList = os.listdir(path)
+    dirList = []
+    fileList = []
 
     for item in dList:
-        if(hidden(os.path.join(curDir, item))==False):
-            if any(image_type in item.lower() for image_type in image_types):
-                preview = image_preview(os.path.join(curDir, item))
-                finalList.append((item, preview))
-            else:
-                finalList.append((item, None))
+        if hidden(os.path.join(path, item)):
+            continue
+        else:
+            if os.path.isdir(os.path.join(path, item)):
+                dirList.append(item)
+            elif os.path.isfile(os.path.join(path, item)):
+                if any(image_type in item.lower() for image_type in image_types):
+                    preview = image_preview(os.path.join(path, item))
+                    fileList.append((item, preview))
+                else:
+                    fileList.append((item, None))
 
-    return(finalList)
+    return dirList, fileList
 
 
-@app.route('/<var>', methods=['GET'])
-def filePage(var):
-    if('login' not in session):
+@app.route('/')
+@app.route('/<path:subpath>')
+def filePage(subpath=''):
+    if 'login' not in session:
         return redirect('/login/')
-    
-    if(changeDirectory(var)==False):
-        #Invalid Directory
-        print("Directory Doesn't Exist")
+
+    if subpath.startswith('>'):
+        subpath = subpath[1:]    
+    subpath = subpath.replace('>', '/')
+
+    abs_folder_path = os.path.join(rootDir, subpath)
+
+    # Invalid Directory
+    if not os.path.isdir(abs_folder_path):
+        print("Directory Doesn't Exist", abs_folder_path)
         return render_template('404.html',
                                 errorCode=300,
                                 errorText='Invalid Directory Path',
                                 favList=favList)
+
     try:
-        dirList = getDirList()
-        fileList = getFileList()
+        dirList, fileList = getDirAndFileList(abs_folder_path)
     except:
         return render_template('404.html',
                                 errorCode=200,
@@ -188,51 +159,30 @@ def filePage(var):
     return render_template('home.html',
                             dirList=dirList,
                             fileList=fileList,
-                            currentDir=var,
+                            currentDir=subpath,
                             favList=favList)
 
 
-@app.route('/', methods=['GET'])
-def homePage():
-    global rootDir
-    if('login' not in session):
+@app.route('/download/<path:subpath>')
+def downloadFile(subpath):
+    if 'login' not in session:
         return redirect('/login/')
     
-    os.chdir(rootDir)
-    dirList = getDirList()
-    fileList = getFileList()
-    return render_template('home.html',
-                            dirList=dirList,
-                            fileList=fileList,
-                            currentDir="",
-                            favList=favList)
+    if subpath.startswith('>'):
+        subpath = subpath[1:]   
+    subpath = subpath.replace('>', '/')
 
-
-@app.route('/download/<var>')
-def downloadFile(var):
-    global rootDir
-    if('login' not in session):
-        return redirect('/login/')
+    filePath = os.path.join(rootDir, subpath)
+    fileName = subpath.split('/')[-1]
     
-    #os.chdir(rootDir)
-
-    pathC = var.split('>')
-    if(pathC[0]==''):
-        pathC.remove(pathC[0])
-    
-    fPath = '/'.join(pathC)
-    fPath = rootDir + '/' + fPath
-    
-    if(hidden(fPath)):
+    if hidden(filePath):
         #FILE HIDDEN
         return render_template('404.html',
                                 errorCode=100,
                                 errorText='File Hidden',
                                 favList=favList)
-    fName=pathC[len(pathC)-1]
-    #print(fPath)
     try:
-        return send_file(fPath, attachment_filename=fName)
+        return send_file(filePath, attachment_filename=fileName)
     except:
         return render_template('404.html',
                                 errorCode=200,
@@ -242,7 +192,7 @@ def downloadFile(var):
 
 @app.errorhandler(404)
 def page_not_found(e):
-    if('login' not in session):
+    if 'login' not in session:
         return redirect('/login/')
     
     # note that we set the 404 status explicitly
@@ -253,60 +203,47 @@ def page_not_found(e):
 
 
 @app.route('/createfolder/', methods = ['GET', 'POST'])
-@app.route('/createfolder/<var>', methods = ['GET', 'POST'])
-def createFolder(var=None):
-    if('login' not in session):
+@app.route('/createfolder/<path:subpath>', methods = ['GET', 'POST'])
+def createFolder(subpath=''):
+    if 'login' not in session :
         return redirect('/login/')
+    
     if request.method == 'POST':
-        dir_name = request.form['NewFolderName']
-        dir_name = dir_name.replace('/','')
+        newDir = request.form['NewFolderName']
+        newDir = newDir.replace('/','') #forbidden symbol(s)
 
-    if var is not None:
-        pathC = var.split('>')
-    else:
-        pathC = ['']
-    if(pathC[0]==''):
-        pathC.remove(pathC[0])
-
-    fPath = '/'.join(pathC)
-    fPath = rootDir + '/' + fPath
+    filePath = os.path.join(rootDir, subpath)
 
     # Make dir
-    directory = os.path.join(fPath, dir_name)
+    directory = os.path.join(filePath, newDir)
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    if(hidden(fPath)):
+    if hidden(filePath):
         #FILE HIDDEN
         return render_template('404.html',
                                 errorCode=100,
                                 errorText='File Hidden',
                                 favList=favList)
 
-    if var is None:
-        return redirect('/')
-    return redirect('/'+ var)
+    return redirect('/' + subpath)
 
 
 @app.route('/upload/', methods = ['GET', 'POST'])
-@app.route('/upload/<var>', methods = ['GET', 'POST'])
-def uploadFile(var=None):
-    if('login' not in session):
+@app.route('/upload/<path:subpath>', methods = ['GET', 'POST'])
+def uploadFile(subpath=''):
+    if 'login' not in session :
         return redirect('/login/')
     
     text = ""
     if request.method == 'POST':
-        if var is not None:
-            pathC = var.split('>')
-        else:
-            pathC = ['']
-        if(pathC[0]==''):
-            pathC.remove(pathC[0])
-        
-        fPath = '/'.join(pathC)
-        fPath = rootDir + '/' + fPath
+        if subpath.startswith('>'):
+            subpath = subpath[1:]   
+            subpath = subpath.replace('>', '/')
+
+        filePath = os.path.join(rootDir, subpath)
     
-        if(hidden(fPath)):
+        if hidden(filePath):
             #FILE HIDDEN
             return render_template('404.html',
                                     errorCode=100,
@@ -316,7 +253,7 @@ def uploadFile(var=None):
         files = request.files.getlist('files[]')
         fileNo = 0
         for file in files:
-            fupload = os.path.join(fPath, file.filename)
+            fupload = os.path.join(filePath, file.filename)
 
             if secure_filename(file.filename) and not os.path.exists(fupload):
                 try:
@@ -335,7 +272,7 @@ def uploadFile(var=None):
 
     fileNo2 = len(files)-fileNo
     return render_template('uploadsuccess.html',
-                            currDir=var,
+                            currDir=subpath,
                             text=text,
                             fileNo=fileNo,
                             fileNo2=fileNo2,
@@ -343,4 +280,4 @@ def uploadFile(var=None):
 
 
 if __name__ == '__main__':
-    app.run(host= '0.0.0.0', debug=True)
+    app.run(host= '0.0.0.0', debug=True, port=5000)
