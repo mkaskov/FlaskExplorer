@@ -36,11 +36,11 @@
                      <input type="checkbox" style="display:inline-block; position:absolute; margin:.25rem;"/>
                 {% if ('.jpg' in  f_name.lower()) or ('.jpeg' in f_name.lower()) %}
                     <img src = "data:image/jpeg;charset=utf-8;base64, {{ preview }}" class='img-thumbnail' style="border:0px"/>                    
-                {% elif ('.png' in f_name) %} 
+                {% elif ('.png' in f_name.lower()) %} 
                     <img src = '/static/png.png' class='img-thumbnail' style="border:0px"/>
-                {% elif ('.mp4' in f_name) %} 
+                {% elif ('.mp4' in f_name.lower()) %} 
                     <img src = '/static/mp4.png' class='img-thumbnail' style="border:0px"/>
-                {% elif ('.mp3' in f_name) %} 
+                {% elif ('.mp3' in f_name.lower()) %} 
                     <img src = '/static/mp3.png' class='img-thumbnail' style="border:0px"/>
 
                 {% else %} 
