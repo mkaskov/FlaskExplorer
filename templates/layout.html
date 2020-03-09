@@ -12,6 +12,9 @@
 
     {{ fontawesome_html() }}
 
+    {{ dropzone.load_css() }}
+    {{ dropzone.style('border: 3px double #17a2b8;border-radius: 20px; min-height: 300px;') }}
+
     <title>File Explorer</title>
 </head>
 
@@ -24,19 +27,22 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarNav">
                   <ul class="navbar-nav ml-auto mt-2 mb-2 ">
-                      {% if favList %}
-                      
-                      <form class="md-form" action = "/createfolder/{{currentDir}}"  method = "POST">
-                        <input type="text" name="NewFolderName" placeholder="new folder name" required minlength="2" maxlength="10" >
-                        <input class="btn btn-sm mr-4" type = "submit"/>
-                      </form>
-
-                      <form class="md-form" action = "/upload/{{currentDir}}" method = "POST"  enctype = "multipart/form-data">
-
-                        <input style="color:white;" class ="btn btn-sm "  type="file" name = "files[]" multiple="true" >
-                        <input class="btn btn-sm mr-4" type = "submit"/>
                     
+                      {% if favList %}
+
+                      <form action = "/createfolder/{{currentDir}}"  method="POST">
+                        <div class="input-group mb-3">
+                          <input type="text" name="NewFolderName" class="form-control" placeholder="Enter name" required minlength="2" maxlength="10">
+                          <div class="input-group-append">
+                            <button class="btn btn-secondary" type="submit">Create Dir</button>
+                          </div>
+                        </div>
                       </form>
+
+                      <!-- <form action = "/upload/{{currentDir}}" method = "POST" enctype = "multipart/form-data">
+                        <input type="file" name = "file" multiple="true" >
+                        <button type="submit" class="btn btn-secondary mb-2">Upload</button>
+                      </form> -->
 
                       {% endif %}
 

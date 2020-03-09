@@ -8,13 +8,26 @@ from flask_fontawesome import FontAwesome
 from PIL import Image, ImageOps
 from io import BytesIO
 from werkzeug import secure_filename
+from flask_dropzone import Dropzone
 
 
 # Init flask app and variables
 app = Flask(__name__)
 fa = FontAwesome(app)
 app.secret_key = 'secret_key'
-image_types = ['.jpg', '.jpeg']
+image_types = ['.jpg', '.jpeg'] #images with preview
+
+
+# Dropzone settings (it can be overwriting with HTML/JS)
+app.config.update(
+    DROPZONE_ALLOWED_FILE_TYPE='image',
+    DROPZONE_MAX_FILE_SIZE=10,
+    DROPZONE_MAX_FILES=50,
+    DROPZONE_PARALLEL_UPLOADS=3,  # set parallel amount
+    DROPZONE_UPLOAD_MULTIPLE=True,  # enable upload multiple
+)
+
+dropzone = Dropzone(app)
 
 # Load and prepare config
 with open('config.json') as json_data_file:
@@ -250,17 +263,18 @@ def uploadFile(subpath=''):
                                     errorText='File Hidden',
                                     favList=favList)
 
-        files = request.files.getlist('files[]')
-        fileNo = 0
-        for file in files:
+        fileNumOk = 0
+        fileNumAll = 0
+        for key, file in request.files.items():
             fupload = os.path.join(filePath, file.filename)
+            fileNumAll += 1
 
             if secure_filename(file.filename) and not os.path.exists(fupload):
                 try:
                     file.save(fupload)    
                     print(file.filename + ' Uploaded')
                     text = text + file.filename + ' Uploaded<br>'
-                    fileNo += 1
+                    fileNumOk += 1
                 except Exception as e:
                     print(file.filename + ' Failed with Exception '+ str(e))
                     text = text + file.filename + ' Failed with Exception '+ str(e) + '<br>'
@@ -270,12 +284,12 @@ def uploadFile(subpath=''):
                 print(file.filename + ' Failed because File Already Exists or File Type Issue')
                 text = text + file.filename + ' Failed because File Already Exists or File Type not secure <br>'
 
-    fileNo2 = len(files)-fileNo
+    #return redirect('/' + subpath)
     return render_template('uploadsuccess.html',
                             currDir=subpath,
                             text=text,
-                            fileNo=fileNo,
-                            fileNo2=fileNo2,
+                            fileNo=fileNumOk,
+                            fileNo2=fileNumAll,
                             favList=favList)
 
 

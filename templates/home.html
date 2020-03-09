@@ -4,7 +4,6 @@
 
 <div class='container'>
     
-   
     <div class = 'row mt-4'>
 
     {% for f_name in dirList %}
@@ -25,7 +24,6 @@
 
 <div class='container'>
     
-
     <div class = 'row mt-4'>
         
     {% for f_name, preview in fileList %}
@@ -54,13 +52,46 @@
             </div>
         </div>
     
-
-        
-
-
         {% endfor %}
     </div>
 </div>
+
+
+<div class='container'>
+
+    <form action="/upload/{{currentDir}}" method="POST" enctype="multipart/form-data" class="dropzone" id="dropzone"></form>
+
+</div>
+
+
+{{ dropzone.load_js() }}
+
+<script>
+    Dropzone.autoDiscover = false;
+    var dropzone = new Dropzone("form#dropzone", {
+          init: function() {
+            var self = this;
+            self.on("queuecomplete", function(progress) { //refresh page when all files loaded
+                console.log("Queue Complete.");
+                location.reload();
+            });
+          },
+          uploadMultiple: true,
+          parallelUploads: 3,
+          paramName: "file", // The name that will be used to transfer the file
+          maxFilesize: 10, // MB
+          acceptedFiles: "image/*",
+          maxFiles: 50,
+          dictDefaultMessage: `Drop files here or click to upload.`, // message display on drop area
+          dictFallbackMessage: "Your browser does not support drag'n'drop file uploads.",
+          dictInvalidFileType: "You can't upload files of this type.",
+          dictFileTooBig: "File is too big {{filesize}}. Max filesize: {{maxFilesize}}MiB.",
+          dictResponseError: "Server error: {{statusCode}}",
+          dictMaxFilesExceeded: "Your can't upload any more files.",
+        });    
+</script>
+
+          
 
         
 {% endblock content %}

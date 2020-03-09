@@ -3,3 +3,4 @@ Werkzeug
 piexif
 Pillow
 flask_fontawesome
+Flask-Dropzone
