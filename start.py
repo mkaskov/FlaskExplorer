@@ -65,6 +65,20 @@ def logoutMethod():
     return redirect('/login/')
 
 
+def make_breadcrumb(path):
+
+    breadcrumb = []
+    breadcrumb.append(('Home', '/'))
+    
+    structure = path.split('/')
+    cur_path = ''
+    for item in structure:
+        cur_path += '/'+item
+        breadcrumb.append((item, cur_path))
+
+    return breadcrumb
+
+
 def image_preview(img_path):
     """ Load image, make preview with corrected exif orientation
     """
@@ -154,6 +168,8 @@ def filePage(subpath=''):
 
     abs_folder_path = os.path.join(rootDir, subpath)
 
+    breadcrumb = make_breadcrumb(subpath)
+
     # Invalid Directory
     if not os.path.isdir(abs_folder_path):
         print("Directory Doesn't Exist", abs_folder_path)
@@ -173,6 +189,7 @@ def filePage(subpath=''):
                             dirList=dirList,
                             fileList=fileList,
                             currentDir=subpath,
+                            breadcrumb=breadcrumb,
                             favList=favList)
 
 

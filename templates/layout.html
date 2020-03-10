@@ -13,7 +13,7 @@
     {{ fontawesome_html() }}
 
     {{ dropzone.load_css() }}
-    {{ dropzone.style('border: 3px double #17a2b8;border-radius: 20px; min-height: 300px;') }}
+    {{ dropzone.style('border: 3px double #17a2b8;border-radius: 20px;margin-top:5%;margin-bottom:5%; min-height: 200px;') }}
 
     <title>File Explorer</title>
 </head>
@@ -69,6 +69,18 @@
                    
                   </ul>
                 </div>
+              </nav>
+
+
+              <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+
+                  {% for b_name, b_url in breadcrumb %}
+
+                  <li class="breadcrumb-item"><a href="{{ b_url }}">{{ b_name }}</a></li>
+
+                  {% endfor %}
+                </ol>
               </nav>
               
               
