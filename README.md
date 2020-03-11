@@ -1,4 +1,4 @@
-# Flask File Explorer and Image Gallery Server #
+# Flask File Explorer and Image Gallery Server (singlepage js version) #
 
 A file explorer that works over local area network (Wi-Fi/Ethernet) using Flask server. You can explore a computer directory and download any file. Images have a preview.
 
